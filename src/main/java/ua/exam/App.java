@@ -2,8 +2,6 @@ package ua.exam;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Random;
 
 /**
@@ -30,7 +28,15 @@ import java.util.Random;
  * @see JScrollPane
  */
 public class App {
-    private static final JFrame mainFrame = new JFrame("App");
+    private static final String appName = "App";
+    private static final String initialQuestion = "How many numbers to display?";
+    private static final String errorMessage = "Value must be number!";
+    private static final String suggestionMessage = "Please select a value smaller or equal to 30.";
+    private static final String enterButtonText = "Enter";
+    private static final String sortButtonText = "Sort";
+    private static final String resetButtonText = "Reset";
+
+    private static final JFrame mainFrame = new JFrame(appName);
     private static final JPanel mainPanel = new JPanel();
 
     private static final int maxX = 800;
@@ -42,6 +48,7 @@ public class App {
     private static int count;
     private static boolean isDescent = true;
     private static final int threshold = 30;
+    private static final int maxNumberValue = 1001;
 
     /**
      * Main method creates app and run it.
@@ -65,7 +72,7 @@ public class App {
 
         JScrollPane scroll = new JScrollPane(mainPanel);
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
 
         mainFrame.add(scroll);
         mainFrame.setSize(maxX, maxY);
@@ -76,15 +83,19 @@ public class App {
         mainFrame.setVisible(true);
     }
 
+    /**
+     * Full fill 1st screen
+     *
+     * @see JPanel
+     */
     private void placeComponentsOnLoginPanel() {
         mainPanel.setLayout(null);
         mainPanel.removeAll();
 
-        JLabel numberLabel = new JLabel("How many numbers to display?");
+        JLabel numberLabel = new JLabel(initialQuestion);
         JTextField numberField = new JTextField("", 10);
-        numberField.setText("10");
 
-        numberLabel.setBounds((maxX-generalWidth)/2, (maxY-generalHeight)/2-80, generalWidth+100, generalHeight);
+        numberLabel.setBounds((maxX-generalWidth)/2-25, (maxY-generalHeight)/2-80, generalWidth+100, generalHeight);
         numberField.setBounds((maxX-generalWidth)/2, (maxY-generalHeight)/2-40, generalWidth, generalHeight);
 
         addEnterButton(numberField);
@@ -95,26 +106,34 @@ public class App {
         mainPanel.repaint();
     }
 
+    /**
+     * Add "Enter" button
+     *
+     * @param numberField
+     */
     private void addEnterButton(final JTextField numberField) {
-        JButton enterButton = new JButton("Enter");
+        JButton enterButton = new JButton(enterButtonText);
         enterButton.setBounds((maxX-generalWidth)/2, (maxY-generalHeight)/2, generalWidth, generalHeight);
-        enterButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    count = Integer.parseInt(numberField.getText().trim());
-                    int width = count*6+30;
-                    mainPanel.setPreferredSize(new Dimension(width,maxY-100));
-                    numbers = new int[count];
-                    placeComponentsOnMainPanel(mainPanel, false);
-                } catch (NumberFormatException exception) {
-                    JOptionPane.showMessageDialog(null, "Value must be number!");
-                }
+        enterButton.addActionListener(e -> {
+            try {
+                count = Integer.parseInt(numberField.getText().trim());
+                int width = count*64/10;
+                mainPanel.setPreferredSize(new Dimension(width,maxY));
+                numbers = new int[count];
+                placeComponentsOnMainPanel(mainPanel, false);
+            } catch (NumberFormatException exception) {
+                JOptionPane.showMessageDialog(null, errorMessage);
             }
         });
         mainPanel.add(enterButton);
     }
 
+    /**
+     * Full fill main screen
+     *
+     * @param mainPanel
+     * @param sorted
+     */
     private void placeComponentsOnMainPanel(final JPanel mainPanel, boolean sorted) {
         mainPanel.setLayout(null);
         mainPanel.removeAll();
@@ -123,7 +142,7 @@ public class App {
 
         if(!sorted) {
             for (int i = 0; i < count; i++) {
-                numbers[i] = random.nextInt(1000);
+                numbers[i] = random.nextInt(maxNumberValue);
             }
             if(numbers != null && numbers.length>0) numbers[0] = random.nextInt(threshold);
         } else {
@@ -139,7 +158,7 @@ public class App {
         for (int i = 0; i < count; i++) {
             assert numbers != null;
             JButton randomNumber = new JButton(String.valueOf(numbers[i]));
-            randomNumber.setBounds(60*(i/10), 27*(1+i%10), generalWidth-60, generalHeight);
+            randomNumber.setBounds(60*(i/10), 27*(1+i%10), generalWidth-55, generalHeight);
             addButtonListener(mainPanel, randomNumber);
         }
 
@@ -150,64 +169,23 @@ public class App {
         mainPanel.repaint();
     }
 
-    private void reverse() {
-        for(int i = 0; i < numbers.length / 2; i++) {
-            int temp = numbers[i];
-            numbers[i] = numbers[numbers.length - i - 1];
-            numbers[numbers.length - i - 1] = temp;
-        }
-    }
-
-    private void addSortButton(final JPanel mainPanel) {
-        JButton sortButton = new JButton("Sort");
-        sortButton.setBounds((maxX-generalWidth)-250, (maxY-generalHeight)-100, generalWidth, generalHeight);
-        sortButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                placeComponentsOnMainPanel(mainPanel,true);
-            }
-        });
-        mainPanel.add(sortButton);
-    }
-
-    private void addResetButton(final JPanel mainPanel) {
-        JButton resetButton = new JButton("Reset");
-        resetButton.setBounds((maxX-generalWidth)-100, (maxY-generalHeight)-100, generalWidth, generalHeight);
-        resetButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                isDescent = true;
-                mainPanel.setPreferredSize(new Dimension(maxX-100,maxY-100));
-                placeComponentsOnLoginPanel();
-            }
-        });
-        mainPanel.add(resetButton);
-    }
-
-    private void addButtonListener(final JPanel mainPanel, JButton randomNumberButton) {
-        randomNumberButton.addActionListener(new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JButton button = (JButton) e.getSource();
-                int num = Integer.parseInt(button.getText());
-                if (num <= threshold){
-                    isDescent = true;
-                    placeComponentsOnMainPanel(mainPanel,false);
-                } else {
-                    JOptionPane.showMessageDialog(null, "Please select a value smaller or equal to 30.");
-                }
-            }
-        });
-        mainPanel.add(randomNumberButton);
-    }
-
-
+    /**
+     * Entry point for Quick sort algorithm
+     */
     public static void quickSort() {
         int startIndex = 0;
         int endIndex = count - 1;
         doSort(startIndex, endIndex);
     }
 
+    /**
+     *  Pick an element, called a pivot, from the array.
+     *  Partitioning: reorder the array so that all elements with values less than the pivot come before the pivot,
+     *      while all elements with values greater than the pivot come after it (equal values can go either way).
+     *      After this partitioning, the pivot is in its final position. This is called the partition operation.
+     *  Recursively apply the above steps to the sub-array of elements with smaller values and separately
+     *      to the sub-array of elements with greater values.
+     */
     private static void doSort(int start, int end) {
         if (start >= end)
             return;
@@ -232,5 +210,64 @@ public class App {
         }
         doSort(start, cur);
         doSort(cur+1, end);
+    }
+
+    /**
+     * It makes the array in reverse order
+     */
+    private void reverse() {
+        for(int i = 0; i < numbers.length / 2; i++) {
+            int temp = numbers[i];
+            numbers[i] = numbers[numbers.length - i - 1];
+            numbers[numbers.length - i - 1] = temp;
+        }
+    }
+
+    /**
+     * Add "Sort" button
+     *
+     * @param mainPanel
+     */
+    private void addSortButton(final JPanel mainPanel) {
+        JButton sortButton = new JButton(sortButtonText);
+        sortButton.setBounds((maxX-generalWidth)-250, (maxY-generalHeight)-100, generalWidth, generalHeight);
+        sortButton.addActionListener(e -> placeComponentsOnMainPanel(mainPanel,true));
+        mainPanel.add(sortButton);
+    }
+
+    /**
+     * Add "Reset" button
+     *
+     * @param mainPanel
+     */
+    private void addResetButton(final JPanel mainPanel) {
+        JButton resetButton = new JButton(resetButtonText);
+        resetButton.setBounds((maxX-generalWidth)-100, (maxY-generalHeight)-100, generalWidth, generalHeight);
+        resetButton.addActionListener(e -> {
+            isDescent = true;
+            mainPanel.setPreferredSize(new Dimension(maxX-100,maxY));
+            placeComponentsOnLoginPanel();
+        });
+        mainPanel.add(resetButton);
+    }
+
+    /**
+     * Add listener to all buttons which contain numbers
+     *
+     * @param mainPanel
+     * @param randomNumberButton
+     */
+    private void addButtonListener(final JPanel mainPanel, JButton randomNumberButton) {
+        randomNumberButton.addActionListener(e -> {
+            JButton button = (JButton) e.getSource();
+            int num = Integer.parseInt(button.getText());
+            if (num <= threshold){
+                isDescent = true;
+                placeComponentsOnMainPanel(mainPanel,false);
+            } else {
+                JOptionPane.showMessageDialog(null, suggestionMessage);
+            }
+        });
+        mainPanel.add(randomNumberButton);
     }
 }
