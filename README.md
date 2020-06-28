@@ -12,6 +12,8 @@ mvn clean install
 
 ## Usage
 
+Go to target directory and run the command.
+
 ```bash
 java -jar Exam-1.0-SNAPSHOT.jar
 ```
